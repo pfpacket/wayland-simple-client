@@ -127,12 +127,8 @@ std::unique_ptr<simple_client> simple_client_create()
     wl_surface_set_user_data(client->surface, client.get());
     wl_shell_surface_set_title(client->shell_surface, "simple-client");
 
-    return client;
-}
-
-void simple_client_draw_surface(struct simple_client *client)
-{
     memset(client->data, 64, client->width * client->height * 4);
+    return client;
 }
 
 void simple_client_display_surface(struct simple_client *client)
@@ -148,7 +144,6 @@ int main(int argc, char **argv)
     try {
         int ret = 0;
         auto client = simple_client_create();
-        simple_client_draw_surface(client.get());
         simple_client_display_surface(client.get());
         while (ret != -1)
             ret = wl_display_dispatch(client->display);
