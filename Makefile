@@ -1,4 +1,4 @@
-CFLAGS += -Wall -g
+CFLAGS += -Wall -Wextra -Wno-unused-parameter -g
 LIBS += $(shell pkg-config --libs wayland-client)
 INCLUDES += $(shell pkg-config --cflags wayland-client)
 OBJS = os-compatibility.o simple-client.o

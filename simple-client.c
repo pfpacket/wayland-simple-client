@@ -76,8 +76,17 @@ static void create_shm_buffer(struct simple_client *client)
     close(fd);
 }
 
+void draw_argb8888(void *d, uint8_t a, uint8_t r, uint8_t g, uint8_t b, size_t count)
+{
+    while (count-- > 0)
+        *((uint32_t *)d + count) = ((a << 24) | (r << 16) | (g << 8) | b);
+}
+
 struct simple_client *simple_client_create()
 {
+    static struct wl_registry_listener registry_listener = {
+        registry_handle_global, NULL
+    };
     struct simple_client *client = malloc(sizeof (struct simple_client));
     if (!client)
         die("Cannot allocate memory for simple_client\n");
@@ -89,13 +98,10 @@ struct simple_client *simple_client_create()
     client->registry = wl_display_get_registry(client->display);
     if (!client->registry)
         die("Cannot get registry from Wayland display\n");
-    static struct wl_registry_listener registry_listener = {
-        registry_handle_global, NULL
-    };
     wl_registry_add_listener(client->registry, &registry_listener, client);
 
-    wl_display_dispatch(client->display);
     wl_display_roundtrip(client->display);
+    wl_display_dispatch(client->display);
 
     client->width = 600;
     client->height = 500;
@@ -116,7 +122,7 @@ struct simple_client *simple_client_create()
     wl_surface_set_user_data(client->surface, client);
     wl_shell_surface_set_title(client->shell_surface, "simple-client");
 
-    memset(client->data, 64, client->width * client->height * 4);
+    draw_argb8888(client->data, 0x00, 0x00, 0x00, 0xff, client->width * client->height);
     wl_surface_attach(client->surface, client->buffer, 0, 0);
     wl_surface_damage(client->surface, 0, 0, client->width, client->height);
     wl_surface_commit(client->surface);
@@ -126,10 +132,8 @@ struct simple_client *simple_client_create()
 
 int main(int argc, char **argv)
 {
-    int ret = 0;
     struct simple_client *client = simple_client_create();
-    while (ret != -1)
-        ret = wl_display_dispatch(client->display);
+    while (wl_display_dispatch(client->display) != -1);
     free(client);
     exit(EXIT_SUCCESS);
 }
